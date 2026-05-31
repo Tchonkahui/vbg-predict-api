@@ -1,0 +1,43 @@
+# ============================================================
+# .gitignore — API VBG
+# ============================================================
+
+# Modèle ML — Ne jamais versionner (trop lourd + données sensibles)
+*.pkl
+*.joblib
+*.h5
+
+# Environnement Python
+venv/
+.env
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Logs — générés automatiquement
+logs/
+*.log
+
+# Données — jamais de données brutes sur GitHub
+data/
+*.csv
+*.xlsx
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db

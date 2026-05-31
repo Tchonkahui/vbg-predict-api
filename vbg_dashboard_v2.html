@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VBG Predict — Analyse Prédictive</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c12;
+  --bg2: #0d1117;
+  --bg3: #111820;
+  --bg4: #161e28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eaf0;
+  --text2: #8892a0;
+  --text3: #4a5568;
+  --accent: #e55c3a;
+  --accent2: #ff7e5f;
+  --gold: #f5a623;
+  --safe: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --critical: #dc2626;
+  --blue: #3b82f6;
+  --glow-r: rgba(229,92,58,0.15);
+  --glow-b: rgba(59,130,246,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* GRID BACKGROUND */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(229,92,58,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(8,12,18,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2.5rem;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--gold));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: 'Syne', sans-serif;
+  color: white;
+  letter-spacing: -0.5px;
+}
+
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.logo-version {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text3);
+  background: var(--bg4);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.api-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--safe);
+  box-shadow: 0 0 8px var(--safe);
+  animation: blink 2s ease infinite;
+}
+
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.header-link {
+  font-size: 0.78rem;
+  color: var(--text2);
+  text-decoration: none;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: all 0.2s;
+  font-family: 'JetBrains Mono', monospace;
+}
+.header-link:hover { border-color: var(--border2); color: var(--text); }
+
+/* ETHICAL BANNER */
+.ethical-banner {
+  background: linear-gradient(135deg, rgba(229,92,58,0.12), rgba(245,166,35,0.08));
+  border-bottom: 1px solid rgba(229,92,58,0.2);
+  padding: 10px 2.5rem;
+  font-size: 0.75rem;
+  color: rgba(229,92,58,0.9);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+  z-index: 1;
+}
+
+.ethical-banner::before {
+  content: '⚠';
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* MAIN */
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* HERO */
+.hero {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2rem;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(229,92,58,0.1);
+  border: 1px solid rgba(229,92,58,0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.hero-title span {
+  background: linear-gradient(135deg, var(--accent), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  margin-top: 0.75rem;
+  color: var(--text2);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  max-width: 520px;
+}
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.meta-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+/* STATS GRID */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--bg2);
+  padding: 1.25rem 1.5rem;
+  transition: background 0.2s;
+}
+
+.stat-card:hover { background: var(--bg3); }
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.stat-accent { color: var(--accent); }
+.stat-gold { color: var(--gold); }
+.stat-safe { color: var(--safe); }
+.stat-blue { color: var(--blue); }
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--text3);
+  margin-top: 6px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* LAYOUT GRID */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* PANELS */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.panel-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.panel-body {
+  padding: 1.5rem;
+}
+
+/* FORM */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group.full { grid-column: 1/-1; }
+
+.form-label {
+  font-size: 0.68rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.form-control {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.88rem;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(229,92,58,0.15);
+}
+
+.form-control option { background: var(--bg3); }
+
+/* RANGE */
+.range-wrap { display: flex; align-items: center; gap: 12px; }
+
+.age-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent);
+  min-width: 50px;
+  text-align: center;
+  letter-spacing: -0.03em;
+}
+
+input[type="range"] {
+  flex: 1;
+  height: 4px;
+  background: var(--bg4);
+  border-radius: 2px;
+  outline: none;
+  border: none;
+  padding: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* BUTTON */
+.btn-predict {
+  width: 100%;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, var(--accent), #c94a2a);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-predict::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn-predict:hover::before { opacity: 1; }
+.btn-predict:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(229,92,58,0.35); }
+.btn-predict:active { transform: translateY(0); }
+.btn-predict:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; box-shadow: none; transform: none; }
+
+/* RESULT EMPTY */
+.result-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  color: var(--text3);
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  border: 1px dashed var(--border2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  margin-bottom: 4px;
+}
+
+/* RISK CIRCLE */
+.risk-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  position: relative;
+}
+
+.risk-ring {
+  width: 150px;
+  height: 150px;
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.risk-ring svg { transform: rotate(-90deg); }
+
+.risk-ring-bg { fill: none; stroke: var(--bg4); stroke-width: 8; }
+.risk-ring-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1), stroke 0.3s;
+}
+
+.risk-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.risk-pct {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.risk-niveau {
+  font-size: 0.65rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* RISK BARS */
+.risk-bars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.risk-bar {
+  height: 6px;
+  flex: 1;
+  border-radius: 3px;
+  background: var(--bg4);
+  transition: background 0.3s;
+}
+
+/* FACTORS */
+.factor-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text2);
+  transition: border-color 0.2s;
+}
+
+.factor-item:hover { border-color: var(--border2); }
+.factor-bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+/* RECOMMENDATION */
+.reco-box {
+  background: rgba(34,197,94,0.07);
+  border: 1px solid rgba(34,197,94,0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  color: rgba(34,197,94,0.9);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.reco-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* ETHICAL NOTE */
+.ethical-note {
+  font-size: 0.75rem;
+  color: var(--text3);
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  line-height: 1.6;
+  margin-bottom: 0.75rem;
+}
+
+/* TIMESTAMP */
+.ts {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--text3);
+  text-align: right;
+}
+
+/* SPINNER */
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.72rem;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+  font-family: 'JetBrains Mono', monospace;
+  position: relative;
+  z-index: 1;
+  line-height: 2;
+}
+
+footer a { color: var(--text2); text-decoration: none; }
+footer a:hover { color: var(--accent); }
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
+}
+
+@media (max-width: 900px) {
+  .content-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: repeat(2,1fr); }
+  .hero { grid-template-columns: 1fr; }
+  .hero-meta { align-items: flex-start; }
+  header { padding: 0 1rem; }
+  main { padding: 1.5rem 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">VB</div>
+    <span class="logo-name">VBG Predict</span>
+    <span class="logo-version">v1.0.0</span>
+  </div>
+  <div class="header-right">
+    <div class="api-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connexion...</span>
+    </div>
+    <a href="http://localhost:8000/docs" target="_blank" class="header-link">API Docs →</a>
+  </div>
+</header>
+
+<div class="ethical-banner">
+  Outil d'aide à la décision — Usage académique uniquement — Validation professionnelle obligatoire — Jamais de ciblage individuel automatique
+</div>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div>
+      <div class="hero-badge">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;"></span>
+        Analyse Prédictive · ENSPY Yaoundé
+      </div>
+      <h1 class="hero-title">
+        Violences Basées<br>sur le <span>Genre</span>
+      </h1>
+      <p class="hero-sub">Identification des facteurs socio-démographiques prédictifs de violence domestique pour orienter les politiques publiques de prévention au Cameroun.</p>
+    </div>
+    <div class="hero-meta">
+      <span class="meta-tag">ENSPY · Data Science 3A</span>
+      <span class="meta-tag">Auteur : Landry TCHONKAHUI</span>
+      <span class="meta-tag">Cameroun · 2026</span>
+      <span class="meta-tag">Random Forest · Recall 58.8%</span>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value stat-accent">347</div>
+      <div class="stat-label">Observations dataset</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-gold">58.8%</div>
+      <div class="stat-label">Recall du modèle</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-safe">24.8%</div>
+      <div class="stat-label">Prévalence VBG</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value stat-blue" id="predCount">0</div>
+      <div class="stat-label">Prédictions session</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content-grid">
+
+    <!-- FORM PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-dot"></div>
+        <span class="panel-title">Profil socio-démographique</span>
+      </div>
+      <div class="panel-body">
+
+        <div class="form-group full" style="margin-bottom:1rem;">
+          <div class="form-label">Âge</div>
+          <div class="range-wrap">
+            <input type="range" id="age" min="15" max="80" value="27" step="1"
+                   oninput="document.getElementById('ageVal').textContent=this.value">
+            <div class="age-value" id="ageVal">27</div>
+            <span style="font-size:0.75rem;color:var(--text3);font-family:'JetBrains Mono',monospace;">ans</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Éducation</div>
+            <select id="education" class="form-control">
+              <option value="no education">Sans éducation</option>
+              <option value="primary" selected>Primaire</option>
+              <option value="secondary">Secondaire</option>
+              <option value="tertiary">Supérieur</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Emploi</div>
+            <select id="employment" class="form-control">
+              <option value="unemployed" selected>Sans emploi</option>
+              <option value="employed">Employée</option>
+              <option value="self-employed">Indépendante</option>
+              <option value="student">Étudiante</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">Statut marital</div>
+            <select id="marital" class="form-control">
+              <option value="married" selected>Mariée</option>
+              <option value="unmarried">Non mariée</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Revenu (FCFA)</div>
+            <input type="number" id="income" class="form-control" value="0" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <button class="btn-predict" id="btnPredict" onclick="runPredict()">
+          <span id="btnContent">Lancer l'analyse</span>
+        </button>
+
+        <p style="font-size:0.7rem;color:var(--text3);margin-top:0.75rem;text-align:center;font-family:'JetBrains Mono',monospace;line-height:1.6;">
+          Données anonymisées · Résultat à valider par un professionnel
+        </p>
+
+      </div>
+    </div>
+
+    <!-- RESULT PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-dot" style="background:var(--blue);"></div>
+        <span class="panel-title">Résultat de l'analyse</span>
+      </div>
+      <div class="panel-body">
+
+        <div id="emptyState" class="result-empty">
+          <div class="empty-icon">◎</div>
+          <div style="font-weight:500;font-size:0.9rem;color:var(--text2);">Aucune analyse</div>
+          <div style="font-size:0.78rem;">Renseignez le profil et lancez l'analyse</div>
+        </div>
+
+        <div id="resultContent" style="display:none;">
+
+          <!-- RISK RING -->
+          <div class="risk-hero">
+            <div class="risk-ring">
+              <svg width="150" height="150" viewBox="0 0 150 150">
+                <circle class="risk-ring-bg" cx="75" cy="75" r="60"/>
+                <circle class="risk-ring-fill" id="ringFill" cx="75" cy="75" r="60"
+                  stroke-dasharray="377" stroke-dashoffset="377"/>
+              </svg>
+              <div class="risk-center">
+                <div class="risk-pct" id="riskPct">—</div>
+                <div class="risk-niveau" id="riskNiveau">—</div>
+              </div>
+            </div>
+
+            <!-- RISK BARS -->
+            <div class="risk-bars" style="width:100%;">
+              <div class="risk-bar" id="bar1"></div>
+              <div class="risk-bar" id="bar2"></div>
+              <div class="risk-bar" id="bar3"></div>
+              <div class="risk-bar" id="bar4"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;width:100%;font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--text3);">
+              <span>Faible</span><span>Modéré</span><span>Élevé</span><span>Très élevé</span>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- FACTORS -->
+          <div style="margin-bottom:0.75rem;">
+            <div style="font-size:0.65rem;font-family:'JetBrains Mono',monospace;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">
+              Facteurs de risque identifiés
+            </div>
+            <div id="factorsList"></div>
+          </div>
+
+          <!-- RECO -->
+          <div class="reco-box">
+            <span class="reco-label">Recommandation professionnelle</span>
+            <span id="recoText">—</span>
+          </div>
+
+          <!-- NOTE -->
+          <div class="ethical-note" id="ethicalNote">—</div>
+
+          <!-- TS -->
+          <div class="ts" id="tsText">—</div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  VBG Predict · ENSPY Yaoundé · Data Science 2026 · Landry TCHONKAHUI ·
+  <a href="http://localhost:8000/docs" target="_blank">Documentation API</a> ·
+  <a href="http://localhost:8000/health" target="_blank">Health Check</a><br>
+  Usage académique uniquement — Résultats à valider par un professionnel qualifié
+</footer>
+
+<script>
+const API = 'http://localhost:8000';
+let count = 0;
+
+const COLORS = {
+  'Faible'    : { ring:'#22c55e', bars:1 },
+  'Modéré'    : { ring:'#f59e0b', bars:2 },
+  'Élevé'     : { ring:'#ef4444', bars:3 },
+  'Très Élevé': { ring:'#dc2626', bars:4 },
+};
+
+const BAR_COLORS = ['#22c55e','#f59e0b','#ef4444','#dc2626'];
+
+async function checkStatus() {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  try {
+    const r = await fetch(`${API}/health`, { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    if (d.modele_charge) {
+      dot.style.background = '#22c55e';
+      dot.style.boxShadow  = '0 0 8px #22c55e';
+      text.textContent = 'API active · Modèle chargé';
+    } else {
+      dot.style.background = '#f59e0b';
+      dot.style.boxShadow  = '0 0 8px #f59e0b';
+      text.textContent = 'API active · Modèle inactif';
+    }
+  } catch {
+    dot.style.background = '#ef4444';
+    dot.style.boxShadow  = '0 0 8px #ef4444';
+    text.textContent = 'API non disponible';
+  }
+}
+
+async function runPredict() {
+  const btn = document.getElementById('btnPredict');
+  const bc  = document.getElementById('btnContent');
+  btn.disabled = true;
+  bc.innerHTML = '<div class="spinner"></div> Analyse en cours...';
+
+  const payload = {
+    age           : parseInt(document.getElementById('age').value),
+    education     : document.getElementById('education').value,
+    employment    : document.getElementById('employment').value,
+    marital_status: document.getElementById('marital').value,
+    income        : parseFloat(document.getElementById('income').value) || 0,
+  };
+
+  try {
+    const res = await fetch(`${API}/api/v1/predict/individuelle`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    showResult(data);
+    count++;
+    document.getElementById('predCount').textContent = count;
+  } catch (e) {
+    alert('Erreur de connexion à l\'API.\nVérifiez que python run.py est actif.\n\n' + e.message);
+  } finally {
+    btn.disabled = false;
+    bc.textContent = 'Lancer l\'analyse';
+  }
+}
+
+function showResult(data) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultContent').style.display = 'block';
+
+  const pct    = Math.round(data.probabilite_risque * 100);
+  const niveau = data.niveau_risque;
+  const cfg    = COLORS[niveau] || COLORS['Modéré'];
+
+  // Ring
+  const circ = 2 * Math.PI * 60;
+  const offset = circ - (pct / 100) * circ;
+  const ring = document.getElementById('ringFill');
+  ring.style.stroke = cfg.ring;
+  ring.style.filter = `drop-shadow(0 0 6px ${cfg.ring}60)`;
+  setTimeout(() => ring.style.strokeDashoffset = offset, 50);
+
+  document.getElementById('riskPct').textContent = pct + '%';
+  document.getElementById('riskPct').style.color = cfg.ring;
+  document.getElementById('riskNiveau').textContent = niveau;
+  document.getElementById('riskNiveau').style.color = cfg.ring;
+
+  // Bars
+  for (let i = 1; i <= 4; i++) {
+    const bar = document.getElementById('bar'+i);
+    bar.style.background = i <= cfg.bars ? BAR_COLORS[i-1] : 'var(--bg4)';
+    bar.style.boxShadow  = i <= cfg.bars ? `0 0 6px ${BAR_COLORS[i-1]}60` : 'none';
+  }
+
+  // Factors
+  const list = document.getElementById('factorsList');
+  if (data.facteurs_risque && data.facteurs_risque.length > 0) {
+    list.innerHTML = data.facteurs_risque.map(f =>
+      `<div class="factor-item"><div class="factor-bullet"></div><span>${f}</span></div>`
+    ).join('');
+  } else {
+    list.innerHTML = '<div class="factor-item"><div class="factor-bullet" style="background:var(--safe)"></div><span>Aucun facteur de risque majeur identifié</span></div>';
+  }
+
+  // Reco
+  document.getElementById('recoText').textContent = data.recommandation;
+
+  // Note
+  document.getElementById('ethicalNote').textContent = data.avertissement_ethique;
+
+  // Timestamp
+  const ts = new Date(data.timestamp);
+  document.getElementById('tsText').textContent =
+    `Analyse · ${ts.toLocaleDateString('fr-FR')} ${ts.toLocaleTimeString('fr-FR')} · Modèle v${data.version_modele}`;
+}
+
+checkStatus();
+setInterval(checkStatus, 30000);
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "nom_modele": "Random Forest",
+  "version": "1.0.0",
+  "date": "2026-05-30T19:36:20.922512",
+  "features": [
+    "age",
+    "income_log",
+    "vulnerability_score",
+    "has_income",
+    "emp_risk",
+    "mar_risk",
+    "inc_risk",
+    "age_risk",
+    "edu_risk",
+    "education",
+    "employment",
+    "marital_status",
+    "age_group",
+    "edu_x_emp"
+  ]
+}
