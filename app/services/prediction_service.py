@@ -37,10 +37,41 @@ class ModelService:
     # ----------------------------------------------------------
 
     def charger_modele(self) -> None:
-        """
-        Charge le modèle ML et ses métadonnées au démarrage de l'API.
-        Lève une exception si le modèle est introuvable.
-        """
+        
+        import urllib.request
+
+        import os
+
+        model_path = settings.MODEL_PATH
+
+        # Télécharge le modèle si absent (déploiement cloud)
+
+        if not model_path.exists():
+
+            model_url = os.getenv('MODEL_URL', '')
+
+            if model_url:
+
+                logger.info(f"Téléchargement du modèle depuis URL...")
+
+                urllib.request.urlretrieve(model_url, model_path)
+
+                logger.success("Modèle téléchargé avec succès")
+
+            else:
+
+                raise FileNotFoundError(
+
+                    "Modèle introuvable. Définissez MODEL_URL dans les variables d'environnement."
+
+                )
+
+        logger.info(f"Chargement depuis : {model_path}")
+
+        self.model = joblib.load(model_path)
+
+        logger.success("Modèle ML chargé avec succès")
+
         try:
             logger.info(f"Chargement du modèle depuis : {settings.MODEL_PATH}")
 
